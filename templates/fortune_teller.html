@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔮 Threads Fortune Teller - Discover Your Creator DNA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="/static/fortune_style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'cosmic-purple': '#6B46C1',
+                        'mystic-blue': '#3B82F6',
+                        'stellar-pink': '#EC4899',
+                        'golden-yellow': '#F59E0B',
+                        'deep-space': '#1F2937'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-deep-space via-cosmic-purple to-mystic-blue min-h-screen text-white">
+    <div x-data="fortuneTeller" x-init="init()" class="relative overflow-hidden">
+        <!-- Animated stars background -->
+        <div class="fixed inset-0 z-0">
+            <div class="stars"></div>
+            <div class="shooting-star"></div>
+        </div>
+
+        <!-- Main content -->
+        <div class="relative z-10 container mx-auto px-4 py-8">
+            
+            <!-- Step 1: Landing Page -->
+            <div x-show="currentStep === 'landing'" x-transition class="min-h-screen flex items-center justify-center">
+                <div class="text-center max-w-2xl mx-auto">
+                    <div class="mb-8">
+                        <div class="text-8xl mb-4 animate-pulse">🔮</div>
+                        <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-stellar-pink to-golden-yellow bg-clip-text text-transparent">
+                            Threads Fortune Teller
+                        </h1>
+                        <p class="text-2xl md:text-3xl mb-8 text-gray-300">
+                            Discover Your Mystical Creator DNA
+                        </p>
+                        <p class="text-lg text-gray-400 mb-12 max-w-xl mx-auto">
+                            Let the digital universe reveal your content creator personality through ancient wisdom and modern AI magic ✨
+                        </p>
+                    </div>
+                    
+                    <button @click="startReading()" 
+                            class="cosmic-button text-xl px-12 py-4 rounded-full font-semibold transform hover:scale-105 transition-all duration-300">
+                        🌟 Begin Your Reading 🌟
+                    </button>
+                    
+                    <div class="mt-12 text-sm text-gray-500">
+                        <p>✨ Free • ⚡ Instant • 🔮 Mystical • 📱 Shareable</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Connecting & Loading -->
+            <div x-show="currentStep === 'connecting'" x-transition class="min-h-screen flex items-center justify-center">
+                <div class="text-center">
+                    <div class="mb-8">
+                        <div class="text-6xl mb-4 animate-spin">🌟</div>
+                        <h2 class="text-4xl font-bold mb-6">Connecting to Your Digital Aura...</h2>
+                        <p class="text-xl text-gray-300">Please authorize us to read your Threads energy</p>
+                    </div>
+                    
+                    <button @click="connectThreads()" 
+                            class="cosmic-button text-lg px-10 py-3 rounded-full font-semibold">
+                        🔗 Connect Threads Account
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Reading Progress -->
+            <div x-show="currentStep === 'reading'" x-transition class="min-h-screen flex items-center justify-center">
+                <div class="text-center max-w-lg mx-auto">
+                    <div class="mb-8">
+                        <div class="crystal-ball mb-6">
+                            <div class="text-6xl">🔮</div>
+                        </div>
+                        <h2 class="text-3xl font-bold mb-8">Reading Your Digital Aura...</h2>
+                        
+                        <div class="space-y-4 text-lg">
+                            <div x-show="readingStep >= 1" x-transition.delay.500ms class="flex items-center justify-center">
+                                <span class="text-2xl mr-3">✨</span>
+                                <span>Analyzing your content patterns...</span>
+                            </div>
+                            <div x-show="readingStep >= 2" x-transition.delay.1000ms class="flex items-center justify-center">
+                                <span class="text-2xl mr-3">🌟</span>
+                                <span>Channeling your creator energy...</span>
+                            </div>
+                            <div x-show="readingStep >= 3" x-transition.delay.1500ms class="flex items-center justify-center">
+                                <span class="text-2xl mr-3">🎭</span>
+                                <span>Discovering your archetype...</span>
+                            </div>
+                            <div x-show="readingStep >= 4" x-transition.delay.2000ms class="flex items-center justify-center">
+                                <span class="text-2xl mr-3">🔥</span>
+                                <span>Revealing your mystical portrait...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8">
+                            <div class="cosmic-progress-bar">
+                                <div class="cosmic-progress" :style="`width: ${(readingStep / 4) * 100}%`"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Results -->
+            <div x-show="currentStep === 'results'" x-transition class="min-h-screen py-12">
+                <div class="max-w-4xl mx-auto">
+                    <div class="text-center mb-12">
+                        <h2 class="text-4xl md:text-5xl font-bold mb-4">🎭 Your Creator Portrait</h2>
+                        <p class="text-xl text-gray-300">The universe has spoken...</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-8 mb-12">
+                        <!-- Portrait Card -->
+                        <div class="cosmic-card p-8 text-center">
+                            <div class="text-6xl mb-4">🔮</div>
+                            <h3 class="text-3xl font-bold mb-4 text-golden-yellow" x-text="portrait.archetype"></h3>
+                            <p class="text-lg text-gray-300 mb-6" x-text="portrait.engagement_insight"></p>
+                            
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span>Posting Spirit:</span>
+                                    <span class="text-stellar-pink" x-text="portrait.posting_spirit"></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Creator Level:</span>
+                                    <span class="text-mystic-blue" x-text="portrait.creator_level"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Content DNA -->
+                        <div class="cosmic-card p-8">
+                            <h4 class="text-2xl font-bold mb-6 text-center">🧬 Content DNA</h4>
+                            <div class="space-y-4">
+                                <template x-for="(percentage, type) in portrait.content_dna" :key="type">
+                                    <div>
+                                        <div class="flex justify-between mb-2">
+                                            <span class="capitalize" x-text="type"></span>
+                                            <span x-text="percentage + '%'"></span>
+                                        </div>
+                                        <div class="cosmic-progress-bar">
+                                            <div class="cosmic-progress" :style="`width: ${percentage}%`"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mystical Quote -->
+                    <div class="cosmic-card p-8 text-center mb-8">
+                        <div class="text-2xl mb-4">✨</div>
+                        <p class="text-2xl italic text-stellar-pink" x-text="portrait.shareable_quote"></p>
+                        <p class="text-lg text-gray-400 mt-4" x-text="portrait.mystical_advice"></p>
+                    </div>
+
+                    <!-- Share Buttons -->
+                    <div class="text-center space-y-4">
+                        <h3 class="text-2xl font-bold mb-6">Share Your Creator DNA</h3>
+                        
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <button @click="shareToThreads()" 
+                                    class="share-button bg-gradient-to-r from-stellar-pink to-cosmic-purple">
+                                📱 Share to Threads
+                            </button>
+                            
+                            <button @click="shareToInstagram()" 
+                                    class="share-button bg-gradient-to-r from-golden-yellow to-stellar-pink">
+                                📸 Share to IG Stories
+                            </button>
+                            
+                            <button @click="copyText()" 
+                                    class="share-button bg-gradient-to-r from-mystic-blue to-cosmic-purple">
+                                📋 Copy Text
+                            </button>
+                        </div>
+
+                        <div class="mt-8">
+                            <button @click="retakeReading()" 
+                                    class="text-gray-400 hover:text-white transition-colors">
+                                🔮 Take Another Reading
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div x-show="loading" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+            <div class="cosmic-card p-8 text-center">
+                <div class="text-4xl mb-4 animate-pulse">🔮</div>
+                <p class="text-xl">Channeling cosmic energy...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/fortune_app.js"></script>
+</body>
+</html>

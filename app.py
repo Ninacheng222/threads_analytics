@@ -10,10 +10,11 @@ from database import get_db, create_tables
 from models import Post, Analytics
 from data_collector import ThreadsAPIClient
 from analytics import ContentAnalyzer, MetricsCalculator
+from content_generator import ShareableContentGenerator
 from config import settings
 
 # Initialize FastAPI app
-app = FastAPI(title="Threads Analytics", version="1.0.0")
+app = FastAPI(title="Threads Fortune Teller", version="1.0.0")
 
 # Static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -23,6 +24,7 @@ templates = Jinja2Templates(directory="templates")
 threads_client = ThreadsAPIClient()
 content_analyzer = ContentAnalyzer()
 metrics_calculator = MetricsCalculator()
+content_generator = ShareableContentGenerator()
 
 # Create database tables on startup
 @app.on_event("startup")
@@ -30,9 +32,9 @@ async def startup_event():
     create_tables()
 
 @app.get("/", response_class=HTMLResponse)
-async def dashboard(request: Request):
-    """Main dashboard page"""
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+async def fortune_teller_home(request: Request):
+    """Threads Fortune Teller home page"""
+    return templates.TemplateResponse("fortune_teller.html", {"request": request})
 
 @app.get("/api/posts")
 async def get_posts(db: Session = Depends(get_db)):
@@ -144,6 +146,44 @@ async def analyze_posts(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+@app.post("/api/generate-portrait")
+async def generate_creator_portrait(db: Session = Depends(get_db)):
+    """Generate mystical creator portrait"""
+    try:
+        posts = db.query(Post).all()
+        
+        if not posts:
+            raise HTTPException(status_code=400, detail="No posts found. Please sync data first.")
+        
+        # Generate the creator portrait
+        portrait = await content_analyzer.generate_creator_portrait(posts)
+        
+        # Generate shareable content
+        ig_story_image = content_generator.generate_ig_story_image(portrait)
+        share_urls = content_generator.generate_share_urls(portrait)
+        
+        return {
+            "status": "success",
+            "portrait": portrait,
+            "shareable_content": {
+                "ig_story_image": ig_story_image,
+                "share_urls": share_urls
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Portrait generation failed: {str(e)}")
+
+@app.get("/api/share-content/{portrait_id}")
+async def get_shareable_content(portrait_id: str):
+    """Get pre-generated shareable content"""
+    # In a real app, you'd store portraits and retrieve by ID
+    # For MVP, we'll return a sample
+    return {
+        "threads_text": "🔮 Just discovered my Creator DNA! ✨ Your content resonates with the frequency of authenticity ✨",
+        "ig_story_url": "/static/sample-story.png"
+    }
 
 @app.get("/health")
 async def health_check():
