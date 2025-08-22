@@ -14,7 +14,7 @@ A simple, interactive dashboard to analyze your personal Threads account perform
 
 1. **Clone and Setup**
 ```bash
-git clone <your-repo>
+git clone <my-threads-analytics-repo>
 cd threads_analytics
 pip install -r requirements.txt
 ```
