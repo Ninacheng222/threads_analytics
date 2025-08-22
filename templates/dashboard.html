@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threads Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div x-data="dashboard" x-init="init()" class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Threads Analytics Dashboard</h1>
+            <div class="flex gap-4">
+                <button @click="syncData()" :disabled="loading" class="btn-primary">
+                    <span x-show="!loading">Sync Data</span>
+                    <span x-show="loading">Syncing...</span>
+                </button>
+                <button @click="analyzeSelected()" :disabled="selectedPosts.length === 0 || loading" class="btn-secondary">
+                    Analyze Selected (<span x-text="selectedPosts.length"></span>)
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="metric-card">
+                <div class="text-2xl font-bold text-blue-600" x-text="analytics.total_posts || 0"></div>
+                <div class="text-sm text-gray-600">Total Posts</div>
+            </div>
+            <div class="metric-card">
+                <div class="text-2xl font-bold text-green-600" x-text="(analytics.avg_engagement || 0) + '%'"></div>
+                <div class="text-sm text-gray-600">Avg Engagement</div>
+            </div>
+            <div class="metric-card">
+                <div class="text-2xl font-bold text-purple-600" x-text="analytics.total_views || 0"></div>
+                <div class="text-sm text-gray-600">Total Views</div>
+            </div>
+            <div class="metric-card">
+                <div class="text-2xl font-bold text-red-600" x-text="analytics.total_likes || 0"></div>
+                <div class="text-sm text-gray-600">Total Likes</div>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="dashboard-card mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Performance Trends</h2>
+                <div class="flex gap-2">
+                    <button @click="switchChart('engagement')" 
+                            :class="chartType === 'engagement' ? 'btn-primary' : 'btn-secondary'"
+                            class="text-sm py-1 px-3">Engagement</button>
+                    <button @click="switchChart('views')" 
+                            :class="chartType === 'views' ? 'btn-primary' : 'btn-secondary'"
+                            class="text-sm py-1 px-3">Views</button>
+                    <button @click="switchChart('likes')" 
+                            :class="chartType === 'likes' ? 'btn-primary' : 'btn-secondary'"
+                            class="text-sm py-1 px-3">Likes</button>
+                </div>
+            </div>
+            <canvas id="performanceChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Posts Table -->
+        <div class="dashboard-card">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Posts Performance</h2>
+                <div class="text-sm text-gray-600">
+                    <span x-text="selectedPosts.length"></span> of <span x-text="posts.length"></span> selected
+                </div>
+            </div>
+            
+            <div class="table-interactive">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="table-header w-12">
+                                <input type="checkbox" @change="toggleAllPosts()" 
+                                       :checked="selectedPosts.length === posts.length && posts.length > 0">
+                            </th>
+                            <th @click="sortBy('content')" class="table-header">Content</th>
+                            <th @click="sortBy('engagement_rate')" class="table-header cursor-pointer">
+                                Engagement Rate 
+                                <span x-show="sortBy === 'engagement_rate'">
+                                    <span x-show="sortDesc">↓</span><span x-show="!sortDesc">↑</span>
+                                </span>
+                            </th>
+                            <th @click="sortBy('views')" class="table-header cursor-pointer">Views</th>
+                            <th @click="sortBy('likes')" class="table-header cursor-pointer">Likes</th>
+                            <th @click="sortBy('created_at')" class="table-header cursor-pointer">Date</th>
+                            <th class="table-header">Analysis</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <template x-for="post in posts" :key="post.thread_id">
+                            <tr class="hover:bg-gray-50">
+                                <td class="table-cell">
+                                    <input type="checkbox" :value="post.thread_id" 
+                                           @change="togglePost(post.thread_id)"
+                                           :checked="selectedPosts.includes(post.thread_id)">
+                                </td>
+                                <td class="table-cell max-w-xs">
+                                    <div x-text="truncateText(post.content, 80)" class="truncate"></div>
+                                </td>
+                                <td class="table-cell">
+                                    <span x-text="post.engagement_rate + '%'" 
+                                          :class="getEngagementClass(post.engagement_rate)"></span>
+                                </td>
+                                <td class="table-cell" x-text="post.views.toLocaleString()"></td>
+                                <td class="table-cell" x-text="post.likes.toLocaleString()"></td>
+                                <td class="table-cell" x-text="formatDate(post.created_at)"></td>
+                                <td class="table-cell">
+                                    <div x-show="post.analysis_result" class="analysis-panel text-xs">
+                                        <p x-text="post.analysis_result"></p>
+                                    </div>
+                                    <span x-show="!post.analysis_result" class="text-gray-400 text-xs">
+                                        Not analyzed
+                                    </span>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Loading Overlay -->
+        <div x-show="loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 max-w-sm mx-4">
+                <div class="flex items-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-4"></div>
+                    <span class="text-lg">Processing...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+/* Tailwind CSS CDN will be loaded in HTML */
+
+.dashboard-card {
+    @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
+}
+
+.metric-card {
+    @apply bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-4 border border-blue-200;
+}
+
+.table-interactive {
+    @apply w-full bg-white rounded-lg shadow overflow-hidden;
+}
+
+.table-header {
+    @apply bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100;
+}
+
+.table-cell {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
+}
+
+.btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+}
+
+.btn-secondary {
+    @apply bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+}
+
+.engagement-high {
+    @apply text-green-600 font-semibold;
+}
+
+.engagement-medium {
+    @apply text-yellow-600 font-semibold;
+}
+
+.engagement-low {
+    @apply text-red-600 font-semibold;
+}
+
+.analysis-panel {
+    @apply bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500 mt-4;
+}
+
+.loading {
+    @apply opacity-50 pointer-events-none;
+}
